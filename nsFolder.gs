@@ -6,39 +6,45 @@
  * @namespace nsFolders
  * @description This namespace groups functions related to folder creation.
  */
-const nsFolders = (()=>{
+const nsFolders = (() => {
   /**
    * Creates folders in Google Drive based on a list of school names.
    * 
    * @returns {boolean} True if folders were created successfully, false otherwise.
    */
-  const createFolders_ = ()=>{
-    // TODO: Implement a more robust way to retrieve the tab name dynamically.
-    // This could involve user input, configuration files, etc.
-    const {ss, tab} = getSheetTab(nsSettings.tabs.DistrictProgramLists.name)
-    
-    //FOR TESTING hard coded to get to Column H
-    const schools = tab.getRange("H1").getDataRegion().getValues().flat()
-    //Get rid of header row
-    schools.shift()
-    //const schools = tab.getRange(2,8,tab.getLastRow()-1,1).getValues().flat()
-    const folderInfo = [] // Array to store folder information
+  const createFolders_ = () => {
+    try {
+      // TODO: Implement a more robust way to retrieve the tab name dynamically.
+      // This could involve user input, configuration files, etc.
+      const { ss, tab } = getSheetTab(nsSettings.tabs.DistrictProgramLists.name)
 
-    // TODO: Consider implementing logic to handle folder hierarchy or user selection.
-    const parentFolder = DriveApp.getFolderById(nsSettings.saveFolderID)
+      //FOR TESTING hard coded to get to Column H
+      const schools = tab.getRange("H1").getDataRegion().getValues().flat()
+      //Get rid of header row
+      schools.shift()
+      //const schools = tab.getRange(2,8,tab.getLastRow()-1,1).getValues().flat()
+      const folderInfo = [] // Array to store folder information
 
-    schools.forEach(school => {
-      const newFolder = parentFolder.createFolder(school)
-      folderInfo.push([newFolder.getId(), newFolder.getName()])
-    });
+      // TODO: Consider implementing logic to handle folder hierarchy or user selection.
+      const parentFolder = DriveApp.getFolderById(nsSettings.saveFolderID)
 
-    // Update the spreadsheet with folder information
-    // For now put it way out in ColumnmJ
-    tab.getRange(2, 10, folderInfo.length, 2).setValues(folderInfo)
-    return true
+      schools.forEach(school => {
+        const newFolder = parentFolder.createFolder(school)
+        folderInfo.push([newFolder.getName(), newFolder.getId()])
+      });
+
+      // Update the spreadsheet with folder information
+      // For now put it way out in ColumnmJ
+      tab.getRange(2, 10, folderInfo.length, 2).setValues(folderInfo)
+      return true
+    }
+    catch (err) {
+      console.log(err);
+    }
+
   }
 
-  return{
+  return {
     createFolders: createFolders_,
   }
 })()
@@ -50,10 +56,10 @@ const nsFolders = (()=>{
  * @param {string} tabName The name of the sheet to retrieve.
  * @returns {object} An object containing the spreadsheet and sheet objects.
  */
-const getSheetTab = (tabName)=>{
+const getSheetTab = (tabName) => {
   const info = {}
   info.ss = SpreadsheetApp.getActiveSpreadsheet()
-  info.tab   = info.ss.getSheetByName(tabName)
+  info.tab = info.ss.getSheetByName(tabName)
 
   return info
 }
@@ -62,7 +68,7 @@ const getSheetTab = (tabName)=>{
 /**
  * Runs the createFolders function from the nsFolders namespace.
  */
-const runCreateFolders = ()=> {
+const runCreateFolders = () => {
   const result = nsFolders.createFolders()
   console.log(result); // Log the result (true/false)
 }
