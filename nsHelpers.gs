@@ -32,6 +32,30 @@ const nsHelpers = (function () {
     // Return the full name of the current month
     return monthName;
   }
+
+  /**
+ * Gets the name of the previous month.
+ * 
+ * This function creates a Date object representing the current date, 
+ * then subtracts one month to get the previous month. It returns the 
+ * full name of the previous month as a string (e.g., "January", "February").
+ *
+ * @returns {string} The full name of the previous month.
+ */
+const getPreviousMonthName_ = () => {
+  // Create a new Date object representing the current date
+  const currentDate = new Date();
+
+  // Subtract one month by setting the month to the previous one
+  currentDate.setMonth(currentDate.getMonth() - 1);
+
+  // Get the full name of the previous month
+  const previousMonthName = currentDate.toLocaleString('default', { month: 'long' });
+
+  // Return the full name of the previous month
+  return previousMonthName;
+};
+
   /**
    * Retrieves an array of folder names and IDs for all subfolders in a given folder.
    * 
@@ -82,7 +106,8 @@ const nsHelpers = (function () {
     keepCols: keepCols_,
     getCurrentMonthName: getCurrentMonthName_,
     getSubfolderList: getSubfolderList_,
-    convertToArray2D: convertToArray2D_
+    convertToArray2D: convertToArray2D_,
+    getPreviousMonthName:getPreviousMonthName_
   };
 })();
 
@@ -90,8 +115,32 @@ const nsHelpers = (function () {
 
 
 const checkFOlders = () => {
-  let idorurl = "https://drive.google.com/drive/folders/13L0urjlK0b2YfthCIPEtQZ6AFDQRbmG7"
+  let idorurl = "https://drive.google.com/drive/folders/1bAg-5r3RII6RRjfxwQVD6CNDBtU7BUxL"
   let rslt1 = nsHelpers.getSubfolderList(idorurl)
   let rslt =  nsHelpers.convertToArray2D(rslt1)
-  console.log(rslt);
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
+  let tab = ss.getSheetByName("temp")
+  tab.getRange(1,1,rslt.length,rslt[0].length).setValues(rslt)
+  //console.log(rslt);
 }
+
+
+const subFolderIDgetter = ()=>{
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
+  let folderList = ss.getSheetByName("temp")
+  let folderData = folderList.getRange("A1").getDataRegion().getValues()
+  folderData.shift()
+
+  let studentPrgmFldr =[]
+
+  folderData.forEach(record =>{
+    let fldr = DriveApp.getFolderById(record[1])
+    let sp = fldr.createFolder("Student Programs")
+    studentPrgmFldr.push([sp.getId()])
+  })
+  
+  folderList.getRange(2,3,studentPrgmFldr.length,1).setValues(studentPrgmFldr)
+}
+
+
+

@@ -52,6 +52,10 @@ const nsSettings = (() => {
       name: "K-12 District/Program Search",
       range: "A3:Q",
       checkRange:"G1"
+    },
+    programFldrIds:{
+      name:"foldrIds",
+      range:"A1"
     }
   }
 
