@@ -1,8 +1,7 @@
-// Add to nsSettings.gs or create new file nsColumnMaps.gs
-
 const nsColumnMaps = (() => {
   
-  // Source data column indices (0-based, matching your EXACT header order)
+  // Source data column indices (0-based)
+  // NOTE: Both K-12 Source Data and Preschool Source Data have identical column structure
   const SOURCE = {
     studentNumber: 0,              // Student Number
     studentName: 1,                // Student Name
@@ -18,7 +17,7 @@ const nsColumnMaps = (() => {
     irnDistrictOfResidence: 11,    // IRN District Of Residence
     districtOfResidenceName: 12,   // District of Residence Name
     howReceivedIRN: 13,            // How Received IRN
-    howReceivedDistrictName: 14,   // How Received District Name (USE THIS FOR FILTERING!)
+    howReceivedDistrictName: 14,   // How Received District Name (FILTER BY THIS!)
     membershipCode: 15,            // Membership Code
     membershipName: 16,            // Membership Name
     membershipStartDate: 17,       // Membership Start Date
@@ -27,7 +26,8 @@ const nsColumnMaps = (() => {
     percentOfTime: 20              // Percent Of Time
   };
   
-  // Report columns in EXACT ORDER needed for report template
+  // Report columns in exact order for the template
+  // Same for both K-12 and PSKG reports
   const REPORT_COLUMNS = [
     SOURCE.studentName,            // 1. Student Name
     SOURCE.birthdate,              // 2. Birthdate
@@ -40,13 +40,13 @@ const nsColumnMaps = (() => {
     SOURCE.membershipName,         // 9. Membership Name
     SOURCE.daysEnrolled,           // 10. Days Enrolled
     SOURCE.percentOfTime           // 11. Percent Of Time
-    // NOTE: Cost (column 12) is calculated by formula in template, not from source
+    // Cost (column 12) is calculated by formula in template
   ];
   
   // Columns used for filtering
   const FILTER_COLUMNS = {
-    district: SOURCE.howReceivedDistrictName,  // Column 14 (How Received District Name)
-    program: SOURCE.programName                // Column 4 (Program Name)
+    district: SOURCE.howReceivedDistrictName,  // Column 14
+    program: SOURCE.programName                // Column 4
   };
   
   return {
