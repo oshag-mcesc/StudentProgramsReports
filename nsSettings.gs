@@ -1,4 +1,4 @@
-/**
+ /**
  * @namespace nsSettings
  * @description A namespace containing settings for various tabs.
  */

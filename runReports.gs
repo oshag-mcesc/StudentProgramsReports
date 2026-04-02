@@ -1,9 +1,10 @@
+// In runReports.gs - UPDATE THIS FUNCTION
+
 const runReports = () => {
   const { ss, tab } = getSheetTab(nsSettings.tabs.K12DistrictProgramSearch.name)
   const range = tab.getRange(nsSettings.tabs.K12DistrictProgramSearch.range)
 
-  // TODO: HAS to be a better way here!!
-  //HARD CODED for demonstration!!
+  // Get folder and district/program info
   let folderInfo = ss.getSheetByName(nsSettings.tabs.programFldrIds.name)
   let dpl = ss.getSheetByName(nsSettings.tabs.DistrictProgramLists.name)
 
@@ -29,12 +30,13 @@ const runReports = () => {
         .setColumnFilterCriteria(7, cri1)
         .setColumnFilterCriteria(4, cri2)
 
-
-      //check to see if student count is greater than 0, is so export PDF
+      // Check to see if student count is greater than 0
       let count = tab.getRange(nsSettings.tabs.K12DistrictProgramSearch.checkRange).getValue()
       if (count > 0) {
         let fileName = school[0] + " - " + program + " - " + nsHelpers.getPreviousMonthName()
-        exportCurrentSheetAsPDF(fileName, school[1])
+        
+        // UPDATED: Pass the specific sheet instead of relying on active sheet
+        exportSheetAsPDF(tab, fileName, school[1])  // ← Changed this line!
       }
 
     })

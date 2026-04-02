@@ -77,11 +77,19 @@ function _exportBlob(blob, fileName, spreadsheet, folderID) {
   // SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Export Successful')
 }
 
-// TODO: Need to fix this from ACTIVE sheet to the one we want
+//the main PDF function
+function exportSheetAsPDF(sheet, fileName, folderID) {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+  
+  var blob = _getAsBlob(spreadsheet.getUrl(), sheet)  // Use passed sheet, not active
+  _exportBlob(blob, fileName, spreadsheet, folderID)
+}
+
+// Keep old function for backward compatibility with K-12 reports
 function exportCurrentSheetAsPDF(fileName, folderID) {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
   var currentSheet = SpreadsheetApp.getActiveSheet()
   
   var blob = _getAsBlob(spreadsheet.getUrl(), currentSheet)
-  _exportBlob(blob, fileName, spreadsheet,folderID)
+  _exportBlob(blob, fileName, spreadsheet, folderID)
 }
