@@ -219,21 +219,39 @@ function checkDistrictsAndPrograms() {
     return { success: false, errors };
   }
   
-  // Check districts (Column A)
-  const districts = dplTab.getRange(nsSettings.tabs.DistrictProgramLists.districtColumn)
+  // Check K-12 districts (Column A)
+  const k12Districts = dplTab.getRange(nsSettings.tabs.DistrictProgramLists.districtColumn)
     .getValues()
     .flat()
     .filter(d => d !== "");
   
-  if (districts.length === 0) {
-    errors.push('No districts found in column A');
+  if (k12Districts.length === 0) {
+    errors.push('No K-12 districts found in column A');
   } else {
-    console.log(`  ✓ Districts: ${districts.length} configured`);
+    console.log(`  ✓ K-12 Districts: ${k12Districts.length} configured`);
     
     // Check for duplicates
-    const uniqueDistricts = [...new Set(districts)];
-    if (uniqueDistricts.length !== districts.length) {
-      errors.push(`Duplicate districts found (${districts.length} total, ${uniqueDistricts.length} unique)`);
+    const uniqueK12Districts = [...new Set(k12Districts)];
+    if (uniqueK12Districts.length !== k12Districts.length) {
+      errors.push(`Duplicate K-12 districts found (${k12Districts.length} total, ${uniqueK12Districts.length} unique)`);
+    }
+  }
+  
+  // Check PSKG districts (Column C)
+  const pskgDistricts = dplTab.getRange(nsSettings.tabs.DistrictProgramLists.pskgDistrictColumn)
+    .getValues()
+    .flat()
+    .filter(d => d !== "");
+  
+  if (pskgDistricts.length === 0) {
+    errors.push('No PSKG districts found in column C');
+  } else {
+    console.log(`  ✓ PSKG Districts: ${pskgDistricts.length} configured`);
+    
+    // Check for duplicates
+    const uniquePSKGDistricts = [...new Set(pskgDistricts)];
+    if (uniquePSKGDistricts.length !== pskgDistricts.length) {
+      errors.push(`Duplicate PSKG districts found (${pskgDistricts.length} total, ${uniquePSKGDistricts.length} unique)`);
     }
   }
   
@@ -262,10 +280,10 @@ function checkDistrictsAndPrograms() {
   }
   
   // Estimate total reports
-  const totalK12Reports = districts.length * k12Programs.length;
-  const totalPSKGReports = districts.length * pskgPrograms.length;
-  console.log(`  ℹ Expected K-12 reports: ${totalK12Reports} (${districts.length} districts × ${k12Programs.length} programs)`);
-  console.log(`  ℹ Expected PSKG reports: ${totalPSKGReports} (${districts.length} districts × ${pskgPrograms.length} programs)`);
+  const totalK12Reports = k12Districts.length * k12Programs.length;
+  const totalPSKGReports = pskgDistricts.length * pskgPrograms.length;
+  console.log(`  ℹ Expected K-12 reports: ${totalK12Reports} (${k12Districts.length} districts × ${k12Programs.length} programs)`);
+  console.log(`  ℹ Expected PSKG reports: ${totalPSKGReports} (${pskgDistricts.length} districts × ${pskgPrograms.length} programs)`);
   
   return { success: errors.length === 0, errors };
 }
