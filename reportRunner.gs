@@ -199,6 +199,7 @@ const runReportsGeneric_ = (sourceTabName, districtColumn, programs, reportType 
   return reportCount;
 };
 
+
 /**
  * Generates a single billing report PDF.
  * * This function handles the final steps of report generation:
@@ -298,6 +299,9 @@ const generateReport_ = (reportTab, district, program, data, folderId) => {
  * - Physical Therapy (PT)
  * - etc.
  * 
+ * K-12 DISTRICTS:
+ * Pulled from "District & Program Lists" tab, Column A
+ * 
  * Programs are defined in "District & Program Lists" tab, Column E.
  * 
  * @returns {number} Total number of PDF reports generated
@@ -319,11 +323,12 @@ const runK12Reports = () => {
     .flat()
     .filter(p => p !== "");
   
-  // Call generic report runner with K-12 source data and programs
+  // Call generic report runner with K-12 source data, K-12 districts, and programs
   return runReportsGeneric_(
-    nsSettings.tabs.sourceData.k12,  // "K-12 Source Data" tab
-    k12Programs,                     // Programs from column E
-    'K-12'                          // Display name for logging
+    nsSettings.tabs.sourceData.k12,                    // "K-12 Source Data" tab
+    nsSettings.tabs.DistrictProgramLists.districtColumn,  // Column A districts
+    k12Programs,                                       // Programs from column E
+    'K-12'                                            // Display name for logging
   );
 };
 
@@ -336,6 +341,9 @@ const runK12Reports = () => {
  * PSKG PROGRAMS:
  * - PS (Preschool)
  * - KG (Kindergarten)
+ * 
+ * PSKG DISTRICTS:
+ * Pulled from "District & Program Lists" tab, Column C
  * 
  * Programs are defined in "District & Program Lists" tab, Column F.
  * 
@@ -358,11 +366,12 @@ const runPSKGReports = () => {
     .flat()
     .filter(p => p !== "");
   
-  // Call generic report runner with PSKG source data and programs
+  // Call generic report runner with PSKG source data, PSKG districts, and programs
   return runReportsGeneric_(
-    nsSettings.tabs.sourceData.pskg,  // "Preschool Source Data" tab
-    pskgPrograms,                     // Programs from column F
-    'PSKG'                           // Display name for logging
+    nsSettings.tabs.sourceData.pskg,                        // "Preschool Source Data" tab
+    nsSettings.tabs.DistrictProgramLists.pskgDistrictColumn,  // Column C districts (PSKG-specific)
+    pskgPrograms,                                           // Programs from column F
+    'PSKG'                                                 // Display name for logging
   );
 };
 

@@ -39,7 +39,8 @@ const nsSettings = (() => {
      */
     DistrictProgramLists: {
       name: "District & Program Lists",
-      districtColumn: "A2:A",      // Column A: Districts to loop through
+      districtColumn: "A2:A",      // Column A: Districts to loop through for K12 data
+      pskgDistrictColumn: "C2:C",      // Column C: Districts to loop through for PS and KG data
       k12ProgramColumn: "E2:E",    // Column E: K-12 programs (e.g., SpecEd, Gifted, etc.)
       pskgProgramColumn: "F2:F"    // Column F: PSKG programs (PS, KG only)
     },
