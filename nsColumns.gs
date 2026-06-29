@@ -112,8 +112,8 @@ const nsColumnMaps = (() => {
     SOURCE.schoolName,             // Column 5: School Name
     SOURCE.howReceivedIRN,         // Column 6: How Received IRN
     SOURCE.howReceivedDistrictName,// Column 7: How Received District Name
-    SOURCE.membershipCode,         // Column 8: Membership Code
-    SOURCE.membershipName,         // Column 9: Membership Name
+    //SOURCE.membershipCode,         // Column 8: Membership Code
+    //SOURCE.membershipName,         // Column 9: Membership Name
     SOURCE.daysEnrolled,           // Column 10: Days Enrolled
     SOURCE.percentOfTime           // Column 11: Percent Of Time
     // Column 12: Cost - calculated by formula in template (Days * Rate)
