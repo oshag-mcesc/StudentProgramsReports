@@ -31,14 +31,15 @@
  * * This is the workhorse function that handles the entire report generation workflow.
  * It's called by both runK12Reports() and runPSKGReports() with different parameters.
  * * WORKFLOW OVERVIEW:
- * 1. SETUP: Get references to spreadsheet tabs (source, template, config)
- * 2. LOAD: Read ALL source data into memory (happens ONCE, not per district)
- * 3. CONFIGURE: Get districts list and folder ID mappings
- * 4. LOOP: For each district → for each program:
+ * 1. PROMPT: Ask user for the target report month (Exit gracefully if cancelled)
+ * 2. SETUP: Get references to spreadsheet tabs (source, template, config)
+ * 3. LOAD: Read ALL source data into memory (happens ONCE, not per district)
+ * 4. CONFIGURE: Get districts list and folder ID mappings
+ * 5. LOOP: For each district → for each program:
  * a. Filter data in memory (JavaScript - very fast)
  * b. Skip if no students (no PDF generated)
  * c. Transform data to report format
- * d. Generate PDF
+ * d. Generate PDF with custom month
  * * WHY IN-MEMORY FILTERING IS FAST:
  * - JavaScript array.filter() operates on data already in RAM
  * - No need to apply spreadsheet filters and wait for UI rendering
@@ -50,18 +51,40 @@
  * @param {Array<string>} programs - Array of program names to generate reports for
  * @param {string} reportType - Display name for logging (e.g., 'K-12', 'PSKG')
  * @returns {number} Total number of PDF reports generated
- * * @example
- * // Called internally by runK12Reports:
- * const count = runReportsGeneric_(
- * "K-12 Source Data",
- * "A2:A",
- * ["SpecEd", "Gifted", "Speech", "OT"], 
- * "K-12"
- * );
- * console.log(`Generated ${count} reports`);
  * * @private
  */
-const runReportsGeneric_ = (sourceTabName, districtColumn, programs, reportType = 'Report') => {
+// ADDED: overrides.monthName as an optional parameter at the very end
+const runReportsGeneric_ = (sourceTabName, districtColumn, programs, reportType = 'Report', overrides = {}) => {
+  
+  let selectedMonthName = "";
+  
+  // ==========================================
+  // STEP 0: CHECK FOR FORCED TEST VALUES OR PROMPT USER
+  // ==========================================
+  if (overrides.monthName) {
+    // If a unit test provides a month, use it instantly without prompting!
+    selectedMonthName = overrides.monthName;
+    console.log(`⚙️ UNIT TEST MODE: Bypassing UI prompt. Using mocked month: "${selectedMonthName}"`);
+  } else {
+    // PRODUCTION MODE: Prompt the actual user on screen
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.prompt(
+      'Report Month Configuration',
+      `What month should be used for the ${reportType} report titles? (e.g., January, February, March)`,
+      ui.ButtonSet.OK_CANCEL
+    );
+    
+    const button = response.getSelectedButton();
+    selectedMonthName = response.getResponseText().trim();
+    
+    // Graceful exit check
+    if (button === ui.Button.CANCEL || button === ui.Button.CLOSE || selectedMonthName === "") {
+      ui.alert('Processing Cancelled', 'No report month was provided. The operation has stopped safely.', ui.ButtonSet.OK);
+      return 0;
+    }
+  }
+
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   // Get tab references
   const sourceTab = ss.getSheetByName(sourceTabName);
@@ -133,7 +156,6 @@ const runReportsGeneric_ = (sourceTabName, districtColumn, programs, reportType 
       const programData = districtData.filter(row => 
         row[nsColumnMaps.filterColumns.program] === program
       );
-
       // OPTIMIZATION: Skip this program if no students
       // Old approach: had to apply filter and check UI to know this
       // New approach: instant array length check
@@ -159,7 +181,8 @@ const runReportsGeneric_ = (sourceTabName, districtColumn, programs, reportType 
       // STEP 5: GENERATE AND EXPORT PDF (WITH TRY-CATCH)
       // ==========================================
       try {
-        generateReport_(reportTab, district, program, reportData, folderMap[district]);
+        // NOTE: Added selectedMonthName as the final argument here
+        generateReport_(reportTab, district, program, reportData, folderMap[district], selectedMonthName);
         reportCount++;
         
         // Log success (helpful for monitoring long-running jobs)
@@ -170,12 +193,12 @@ const runReportsGeneric_ = (sourceTabName, districtColumn, programs, reportType 
         
         // Collect all essential tracking data required for the visual Error Log sheet
         errorLog.push([
-          new Date(),                         // Timestamp
-          reportType,                         // K-12 or PSKG
-          district,                           // Target District
-          program,                            // Target Program
-          folderMap[district] || "Not Found", // Target Drive Folder ID
-          error.message                       // The exact error message thrown
+          new Date(),
+          reportType,
+          district,
+          program,
+          folderMap[district] || "Not Found",
+          error.message
         ]);
       }
     });
@@ -220,18 +243,10 @@ const runReportsGeneric_ = (sourceTabName, districtColumn, programs, reportType 
  * @param {string} program - Program name (written to C2)
  * @param {Array<Array>} data - Transformed student data (ready to paste)
  * @param {string} folderId - Google Drive folder ID where PDF will be saved
- * * @example
- * // Called internally by runReportsGeneric_:
- * generateReport_(
- * reportTemplateSheet,
- * "Springfield City",
- * "SpecEd",
- * transformedData,
- * "1abc123def456"
- * );
+ * @param {string} monthName - Custom month string entered by the user for file titles
  * * @private
  */
-const generateReport_ = (reportTab, district, program, data, folderId) => {
+const generateReport_ = (reportTab, district, program, data, folderId, monthName) => {
   
   // ==========================================
   // STEP 1: SET HEADER VALUES
@@ -266,9 +281,9 @@ const generateReport_ = (reportTab, district, program, data, folderId) => {
     // ==========================================
     // STEP 4: EXPORT AS PDF
     // ==========================================
-    // Filename format: "District Name - Program - Month"
-    // Example: "Springfield City - SpecEd - February"
-    const fileName = `${district} - ${program} - ${nsHelpers.getPreviousMonthName()}`;
+    // Filename format: "District Name - Program - Custom Month"
+    // REFACTORED: Swapped out hardcoded nsHelpers.getPreviousMonthName() for custom parameter
+    const fileName = `${district} - ${program} - ${monthName}`;
     
     // exportSheetAsPDF is defined in pdfHelpers.gs
     // It exports the SPECIFIC sheet (not the active sheet) as PDF
@@ -285,6 +300,7 @@ const generateReport_ = (reportTab, district, program, data, folderId) => {
   }
 };
 
+
 /**
  * Runs billing reports for K-12 programs.
  * 
@@ -298,9 +314,6 @@ const generateReport_ = (reportTab, district, program, data, folderId) => {
  * - Occupational Therapy (OT)
  * - Physical Therapy (PT)
  * - etc.
- * 
- * K-12 DISTRICTS:
- * Pulled from "District & Program Lists" tab, Column A
  * 
  * Programs are defined in "District & Program Lists" tab, Column E.
  * 
@@ -323,12 +336,11 @@ const runK12Reports = () => {
     .flat()
     .filter(p => p !== "");
   
-  // Call generic report runner with K-12 source data, K-12 districts, and programs
+  // Call generic report runner with K-12 source data and programs
   return runReportsGeneric_(
-    nsSettings.tabs.sourceData.k12,                    // "K-12 Source Data" tab
-    nsSettings.tabs.DistrictProgramLists.districtColumn,  // Column A districts
-    k12Programs,                                       // Programs from column E
-    'K-12'                                            // Display name for logging
+    nsSettings.tabs.sourceData.k12,  // "K-12 Source Data" tab
+    k12Programs,                     // Programs from column E
+    'K-12'                          // Display name for logging
   );
 };
 
@@ -341,9 +353,6 @@ const runK12Reports = () => {
  * PSKG PROGRAMS:
  * - PS (Preschool)
  * - KG (Kindergarten)
- * 
- * PSKG DISTRICTS:
- * Pulled from "District & Program Lists" tab, Column C
  * 
  * Programs are defined in "District & Program Lists" tab, Column F.
  * 
@@ -366,12 +375,11 @@ const runPSKGReports = () => {
     .flat()
     .filter(p => p !== "");
   
-  // Call generic report runner with PSKG source data, PSKG districts, and programs
+  // Call generic report runner with PSKG source data and programs
   return runReportsGeneric_(
-    nsSettings.tabs.sourceData.pskg,                        // "Preschool Source Data" tab
-    nsSettings.tabs.DistrictProgramLists.pskgDistrictColumn,  // Column C districts (PSKG-specific)
-    pskgPrograms,                                           // Programs from column F
-    'PSKG'                                                 // Display name for logging
+    nsSettings.tabs.sourceData.pskg,  // "Preschool Source Data" tab
+    pskgPrograms,                     // Programs from column F
+    'PSKG'                           // Display name for logging
   );
 };
 
