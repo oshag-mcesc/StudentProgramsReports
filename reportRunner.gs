@@ -339,6 +339,7 @@ const runK12Reports = () => {
   // Call generic report runner with K-12 source data and programs
   return runReportsGeneric_(
     nsSettings.tabs.sourceData.k12,  // "K-12 Source Data" tab
+    nsSettings.tabs.DistrictProgramLists.districtColumn,  // Column A districts
     k12Programs,                     // Programs from column E
     'K-12'                          // Display name for logging
   );
@@ -378,6 +379,7 @@ const runPSKGReports = () => {
   // Call generic report runner with PSKG source data and programs
   return runReportsGeneric_(
     nsSettings.tabs.sourceData.pskg,  // "Preschool Source Data" tab
+    nsSettings.tabs.DistrictProgramLists.pskgDistrictColumn,  // Column C districts (PSKG-specific)
     pskgPrograms,                     // Programs from column F
     'PSKG'                           // Display name for logging
   );
